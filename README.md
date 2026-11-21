@@ -22,3 +22,12 @@ pwsh -File ./run-comparison.ps1 -RepoRoot . -Compiler clang++ -OutputDirectory .
 The patched test still checks that forced refresh works, a missing capability does not leak a fetch slot, and subsequent demand can retry after a failed request. Both viewer pairs produced 3,600 → 1,200 submissions and 18 → 6 peak occupied slots, with all 1,200 distinct items accepted on both sides. The CSV also includes unchanged observer-log control columns.
 
 [Second Life Viewer draft](https://github.com/secondlife/viewer/pull/6757) · [Firestorm draft](https://github.com/FirestormViewer/phoenix-firestorm/pull/332)
+
+## Release source cross-check
+
+The same offline workload submitted 3,600 GETs and occupied 18 slots at peak on each release source. Both received all 1,200 distinct items. This check used the release source functions and simulated transport.
+
+- Second Life Viewer `26.5.0.42122621216`, tag `Second_Life_Release#c74c2c9b-26.5`, commit `c74c2c9b`.
+- Firestorm `7.2.5.81788`, tag `Firestorm_Release_7.2.5.81788`, commit `4ac201fd`.
+
+In checkouts with these tags fetched, pass `-UpstreamOnly -AISOnly -SecondLifeBaseline 'Second_Life_Release#c74c2c9b-26.5' -FirestormBaseline 'Firestorm_Release_7.2.5.81788'` to repeat the release source check.

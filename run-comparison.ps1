@@ -2,7 +2,10 @@ param(
     [string]$RepoRoot = (Join-Path (Split-Path (Split-Path $PSScriptRoot)) 'work'),
     [string]$Compiler = (Join-Path $PSScriptRoot 'llvm-mingw-20261117-ucrt-x86_64/bin/clang++.exe'),
     [string]$OutputDirectory = $PSScriptRoot,
-    [switch]$AISOnly
+    [switch]$AISOnly,
+    [switch]$UpstreamOnly,
+    [string]$SecondLifeBaseline = 'fix/ais-coalesce-item-fetches~1',
+    [string]$FirestormBaseline = 'fix/ais-coalesce-item-fetches~1'
 )
 $ErrorActionPreference = 'Stop'
 New-Item -ItemType Directory -Force $OutputDirectory | Out-Null
@@ -205,11 +208,13 @@ int main()
 '@
 
 $rows = @()
+$modes = if ($UpstreamOnly) { 'upstream' } else { 'upstream','local-candidate' }
 foreach ($viewer in 'secondlife-viewer','firestorm-viewer') {
     $repo = Join-Path $RepoRoot $viewer
-    foreach ($mode in 'upstream','local-candidate') {
+    $baseline = if ($viewer -eq 'secondlife-viewer') { $SecondLifeBaseline } else { $FirestormBaseline }
+    foreach ($mode in $modes) {
         $isPatched = $mode -eq 'local-candidate'
-        $revision = if (!$isPatched) { 'fix/ais-coalesce-item-fetches~1' } elseif ($AISOnly) { 'fix/ais-coalesce-item-fetches' }
+        $revision = if (!$isPatched) { $baseline } elseif ($AISOnly) { 'fix/ais-coalesce-item-fetches' }
         $ais = Read-Source $repo $revision 'llaisapi.cpp'
         $background = Read-Source $repo $revision 'llinventorymodelbackgroundfetch.cpp'
         $observer = Read-Source $repo $revision 'llinventorymodel.cpp'
